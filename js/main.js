@@ -9,6 +9,8 @@ var ceilWidth, ceilHeight;  // 格子大小
 var chessSize;   // 棋子大小
 var chessFontSize;  // 棋子文字大小
 var mark = new Array();   // 标记棋盘上该位置是否有棋子
+var move = '';   // 上一步走子记录
+var moves = new Array();  // 走子记录
 var clickNewGame = null;
 // 棋子对象
 var redKing = new Chess("red", "帅", 0, 4);
@@ -52,7 +54,7 @@ var timer;
 $(function(){
 	responsive();     // 响应式设计
 	checkerboard();    // 绘制棋盘
-	init();	
+	init();
 	$("#roomId").val("");
 });
 
@@ -79,7 +81,7 @@ window.onmousedown = function(event) {
 		return;
 	}
 	if (isClick === false && mark[chessX][chessY] !== 0) {    // 第一次点击 && 点击到了棋子
-		if ((mark[chessX][chessY].group === "black" && clientInfo.group === 0) || 
+		if ((mark[chessX][chessY].group === "black" && clientInfo.group === 0) ||
 			(mark[chessX][chessY].group === "red" && clientInfo.group === 1)) {
 			showDialog("不能控制对方的棋子");
 		}
@@ -101,17 +103,21 @@ window.onmousedown = function(event) {
 		// 第二次点击，点击到空位或对方棋子了
 		if(isConformRule(firstChess, firstChess.x, firstChess.y, chessX, chessY)){
 			turn++;
+			move = getNotion(firstChess, firstChess.x, firstChess.y, chessX, chessY);
+			sentChatMessage(move);
+
 			if (mark[chessX][chessY].name === "将" || mark[chessX][chessY].name === "帅") {
 				isOver = true;
 			}
+
 			mark[chessX][chessY] = Object.assign(firstChess);  // 将棋子移动到第二次点击的位置
 			mark[chessX][chessY].x = chessX;
-			mark[chessX][chessY].y = chessY; 
-			mark[firstChessX][firstChessY] = 0;  // 清除第一次点击的棋子的所在位置, 在init函数中mark数组已经是指向棋子对象的引用了！	
-			isClick = false;  		
+			mark[chessX][chessY].y = chessY;
+			mark[firstChessX][firstChessY] = 0;  // 清除第一次点击的棋子的所在位置, 在init函数中mark数组已经是指向棋子对象的引用了！
+			isClick = false;
 			if($("#roomId").val().trim() !== '') {  // 如果没有填写房间号则是单人模式，不需用到服务器
 				// 通知服务器更新，
-				callServer();  
+				callServer();
 			}
 			playAudio();  // 播放下棋音效
 		}
@@ -127,7 +133,7 @@ window.onmousedown = function(event) {
 function playAudio(){
 	var audio = document.getElementById("audio");
 	audio.play();
-} 
+}
 
 // 实时监听浏览器宽高变化
 $(window).resize(function() {
@@ -240,7 +246,8 @@ function init() {
 	mark[6][8] = blackPawn5;
 	turn = 0;
 	isOver = false;
-  clickNewGame = null;
+    clickNewGame = null;
+    moves = new Array();
 	changeChess();
 }
 
@@ -251,7 +258,7 @@ function changeChess() {
 	checkerboard();
 	 for(var i=0; i<=9; i++){
 		for(var j=0; j<=8; j++){
-			drawChess(mark[i][j]);	
+			drawChess(mark[i][j]);
 		}
 	}
 	gameOver();
@@ -303,7 +310,7 @@ function gameOver() {
 				redFail = false;
 			}
 		}
-	}	
+	}
 	alert(`${redFail ? '黑棋' : '红棋'}胜!\n双方共行了${turn}步棋。`);
 }
 

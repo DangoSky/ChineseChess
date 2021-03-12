@@ -21,7 +21,7 @@ function establishWS() {
     if (clientInfo === null) {
       clientInfo = obj.clientInfo;
       if (clientInfo.group === 0) {
-        showDialog('你执红棋先手，等待对方上线即可开始游戏'); 
+        showDialog('你执红棋先手，等待对方上线即可开始游戏');
       } else if(clientInfo.group === 1) {
         showDialog('你执黑棋后手，红棋已在线，等待对方落子');
       } else {
@@ -36,18 +36,19 @@ function establishWS() {
         callServer();
       }
       if (obj.clientInfo.group === 1) {
-        showDialog('黑棋已上线'); 
+        showDialog('黑棋已上线');
       } else if (obj.clientInfo.group === 0) {
-        showDialog('红棋已上线'); 
+        showDialog('红棋已上线');
       }
     }
     $('#peopleCount').text(obj.roomClientCount);
   })
-  
+
   // 服务器有更新，接受新的棋盘信息
   socket.on('serverChange', function(data) {
     if (data.roomId === room) {
       mark = JSON.parse(data.mark);
+      moves.push(data.move)
       turn = data.turn;
       isOver = data.isOver;
       if (data.clickNewGame === 0) {
@@ -90,6 +91,7 @@ function callServer() {
     socket.emit('clientChange', {
       roomId: room,
       mark: JSON.stringify(mark),
+      move,
       isOver,
       turn,
       clickNewGame,
@@ -104,7 +106,7 @@ function closeWs(e) {
 }
 
 function sentChatMessage(value) {
-  const identity = (clientInfo.group === 0 ? '红棋' : (clientInfo.group === 1 ? '黑棋' : '观众')); 
+  const identity = (clientInfo.group === 0 ? '红棋' : (clientInfo.group === 1 ? '黑棋' : '观众'));
   socket.emit('clientSendChatMessage', JSON.stringify({
     room,
     message: {
